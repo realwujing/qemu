@@ -577,44 +577,44 @@ void main_loop_poll_remove_notifier(Notifier *notify)
 void main_loop_wait(int nonblocking)
 {
     MainLoopPoll mlpoll = {
-        .state = MAIN_LOOP_POLL_FILL,
-        .timeout = UINT32_MAX,
-        .pollfds = gpollfds,
+        .state = MAIN_LOOP_POLL_FILL,       // 主循环轮询的状态为填充
+        .timeout = UINT32_MAX,              // 超时时间设置为最大值
+        .pollfds = gpollfds,                // 使用全局的轮询文件描述符数组
     };
-    int ret;
-    int64_t timeout_ns;
+    int ret;                                // 存储返回值的变量
+    int64_t timeout_ns;                     // 超时时间的纳秒表示
 
     if (nonblocking) {
-        mlpoll.timeout = 0;
+        mlpoll.timeout = 0;                 // 如果是非阻塞模式，超时时间设置为0
     }
 
     /* poll any events */
-    g_array_set_size(gpollfds, 0); /* reset for new iteration */
+    g_array_set_size(gpollfds, 0);          // 重置轮询文件描述符数组的大小为0，为了新一轮的迭代
     /* XXX: separate device handlers from system ones */
-    notifier_list_notify(&main_loop_poll_notifiers, &mlpoll);
+    notifier_list_notify(&main_loop_poll_notifiers, &mlpoll);   // 通知主循环轮询事件
 
     if (mlpoll.timeout == UINT32_MAX) {
-        timeout_ns = -1;
+        timeout_ns = -1;                    // 如果超时时间等于最大值，设置为-1表示不限时
     } else {
-        timeout_ns = (uint64_t)mlpoll.timeout * (int64_t)(SCALE_MS);
+        timeout_ns = (uint64_t)mlpoll.timeout * (int64_t)(SCALE_MS);   // 否则，将毫秒转换为纳秒
     }
 
-    timeout_ns = qemu_soonest_timeout(timeout_ns,
+    timeout_ns = qemu_soonest_timeout(timeout_ns,   // 计算最早的超时时间
                                       timerlistgroup_deadline_ns(
                                           &main_loop_tlg));
 
-    ret = os_host_main_loop_wait(timeout_ns);
-    mlpoll.state = ret < 0 ? MAIN_LOOP_POLL_ERR : MAIN_LOOP_POLL_OK;
-    notifier_list_notify(&main_loop_poll_notifiers, &mlpoll);
+    ret = os_host_main_loop_wait(timeout_ns);   // 调用主机主循环等待函数，传入超时时间
+    mlpoll.state = ret < 0 ? MAIN_LOOP_POLL_ERR : MAIN_LOOP_POLL_OK;   // 根据返回值设置主循环轮询的状态
+    notifier_list_notify(&main_loop_poll_notifiers, &mlpoll);   // 再次通知主循环轮询事件
 
     if (icount_enabled()) {
         /*
          * CPU thread can infinitely wait for event after
          * missing the warp
          */
-        icount_start_warp_timer();
+        icount_start_warp_timer();   // 如果启用了指令计数，开始计算等待事件的时间
     }
-    qemu_clock_run_all_timers();
+    qemu_clock_run_all_timers();   // 运行所有的定时器
 }
 
 /* Functions to operate on the main QEMU AioContext.  */
