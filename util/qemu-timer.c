@@ -335,7 +335,7 @@ int qemu_timeout_ns_to_ms(int64_t ns)
 int qemu_poll_ns(GPollFD *fds, guint nfds, int64_t timeout)
 {
 #ifdef CONFIG_PPOLL
-    if (timeout < 0) {
+    if (timeout < 0) {  // 如果超时时间小于0，使用ppoll并无限期等待
         return ppoll((struct pollfd *)fds, nfds, NULL, NULL);
     } else {
         struct timespec ts;
@@ -343,15 +343,15 @@ int qemu_poll_ns(GPollFD *fds, guint nfds, int64_t timeout)
         /* Avoid possibly overflowing and specifying a negative number of
          * seconds, which would turn a very long timeout into a busy-wait.
          */
-        if (tvsec > (int64_t)INT32_MAX) {
+        if (tvsec > (int64_t)INT32_MAX) {   // 避免溢出并确保非负超时时间
             tvsec = INT32_MAX;
         }
         ts.tv_sec = tvsec;
         ts.tv_nsec = timeout % 1000000000LL;
-        return ppoll((struct pollfd *)fds, nfds, &ts, NULL);
+        return ppoll((struct pollfd *)fds, nfds, &ts, NULL);    // 使用计算后的超时时间调用ppoll
     }
 #else
-    return g_poll(fds, nfds, qemu_timeout_ns_to_ms(timeout));
+    return g_poll(fds, nfds, qemu_timeout_ns_to_ms(timeout));   // 如果ppoll不可用，回退到使用毫秒级超时的g_poll
 #endif
 }
 
