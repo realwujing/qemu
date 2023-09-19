@@ -261,31 +261,31 @@ void qemu_fd_register(int fd)
 
 static void glib_pollfds_fill(int64_t *cur_timeout)
 {
-    GMainContext *context = g_main_context_default();
-    int timeout = 0;
-    int64_t timeout_ns;
-    int n;
+    GMainContext *context = g_main_context_default();  // 获取默认的GMainContext上下文
+    int timeout = 0;  // 初始化超时值为0
+    int64_t timeout_ns;  // 存储超时时间（以纳秒为单位）
+    int n;  // 存储轮询的文件描述符数量
 
-    g_main_context_prepare(context, &max_priority);
+    g_main_context_prepare(context, &max_priority);  // 准备GMainContext上下文并获取最大优先级
 
-    glib_pollfds_idx = gpollfds->len;
-    n = glib_n_poll_fds;
+    glib_pollfds_idx = gpollfds->len;  // 设置glib_pollfds_idx为gpollfds数组的长度
+    n = glib_n_poll_fds;  // 初始化n为glib_n_poll_fds的值
     do {
         GPollFD *pfds;
-        glib_n_poll_fds = n;
-        g_array_set_size(gpollfds, glib_pollfds_idx + glib_n_poll_fds);
-        pfds = &g_array_index(gpollfds, GPollFD, glib_pollfds_idx);
+        glib_n_poll_fds = n;  // 设置glib_n_poll_fds为n的值
+        g_array_set_size(gpollfds, glib_pollfds_idx + glib_n_poll_fds);  // 调整gpollfds数组的大小以容纳新的轮询文件描述符
+        pfds = &g_array_index(gpollfds, GPollFD, glib_pollfds_idx);  // 获取轮询文件描述符的指针
         n = g_main_context_query(context, max_priority, &timeout, pfds,
-                                 glib_n_poll_fds);
-    } while (n != glib_n_poll_fds);
+                                 glib_n_poll_fds);  // 查询GMainContext上下文中的文件描述符信息并获取数量
+    } while (n != glib_n_poll_fds);  // 直到获取到glib_n_poll_fds个文件描述符为止
 
     if (timeout < 0) {
-        timeout_ns = -1;
+        timeout_ns = -1;  // 如果超时值小于0，则将timeout_ns设置为-1表示无限超时
     } else {
-        timeout_ns = (int64_t)timeout * (int64_t)SCALE_MS;
+        timeout_ns = (int64_t)timeout * (int64_t)SCALE_MS;  // 否则，将timeout_ns设置为以纳秒为单位的超时时间
     }
 
-    *cur_timeout = qemu_soonest_timeout(timeout_ns, *cur_timeout);
+    *cur_timeout = qemu_soonest_timeout(timeout_ns, *cur_timeout);  // 计算当前超时时间与新超时时间的最小值，并更新cur_timeout
 }
 
 static void glib_pollfds_poll(void)
