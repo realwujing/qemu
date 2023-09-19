@@ -22,28 +22,28 @@
  * THE SOFTWARE.
  */
 
-#include "qemu/osdep.h"
-#include "qemu-main.h"
-#include "sysemu/sysemu.h"
+#include "qemu/osdep.h"                                      // QEMU 系统仿真器
+#include "qemu-main.h"                                      // QEMU 主程序
+#include "sysemu/sysemu.h"                                   // QEMU 系统仿真
 
 #ifdef CONFIG_SDL
-#include <SDL.h>
+#include <SDL.h>                                             // 简单直接媒体层（Simple DirectMedia Layer，SDL）库
 #endif
 
 int qemu_default_main(void)
 {
     int status;
 
-    status = qemu_main_loop();
-    qemu_cleanup();
+    status = qemu_main_loop();                                // 执行 QEMU 主循环
+    qemu_cleanup();                                            // 清理 QEMU 资源
 
     return status;
 }
 
-int (*qemu_main)(void) = qemu_default_main;
+int (*qemu_main)(void) = qemu_default_main;                   // 指向 QEMU 主函数的指针
 
 int main(int argc, char **argv)
 {
-    qemu_init(argc, argv);
-    return qemu_main();
+    qemu_init(argc, argv);                                     // 初始化 QEMU
+    return qemu_main();                                       // 执行 QEMU 主函数
 }
