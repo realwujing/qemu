@@ -727,23 +727,26 @@ static bool main_loop_should_exit(int *status)
 
 int qemu_main_loop(void)
 {
-    int status = EXIT_SUCCESS;
+    int status = EXIT_SUCCESS;         // 初始化一个表示执行状态的变量，初始值为成功状态
+
 #ifdef CONFIG_PROFILER
-    int64_t ti;
+    int64_t ti;                        // 用于记录时间的变量
 #endif
 
-    while (!main_loop_should_exit(&status)) {
+    while (!main_loop_should_exit(&status)) {   // 当主循环不应该退出时执行以下循环
 #ifdef CONFIG_PROFILER
-        ti = profile_getclock();
+        ti = profile_getclock();         // 获取当前时钟时间，用于性能分析
 #endif
-        main_loop_wait(false);
+        main_loop_wait(false);           // 调用主循环等待函数，参数为false表示非阻塞等待
+
 #ifdef CONFIG_PROFILER
-        dev_time += profile_getclock() - ti;
+        dev_time += profile_getclock() - ti;   // 计算设备执行时间
 #endif
     }
 
-    return status;
+    return status;                      // 返回执行状态
 }
+
 
 void qemu_add_exit_notifier(Notifier *notify)
 {
