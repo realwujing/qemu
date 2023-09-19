@@ -302,26 +302,26 @@ static void glib_pollfds_poll(void)
 
 static int os_host_main_loop_wait(int64_t timeout)
 {
-    GMainContext *context = g_main_context_default();
-    int ret;
+    GMainContext *context = g_main_context_default();  // 获取默认的GMainContext上下文
+    int ret;  // 存储返回值的变量
 
-    g_main_context_acquire(context);
+    g_main_context_acquire(context);  // 获取GMainContext的锁，准备进行事件轮询
 
-    glib_pollfds_fill(&timeout);
+    glib_pollfds_fill(&timeout);  // 使用GLib填充轮询文件描述符结构，并传入超时时间
 
-    qemu_mutex_unlock_iothread();
-    replay_mutex_unlock();
+    qemu_mutex_unlock_iothread();  // 解锁QEMU的IO线程互斥锁
+    replay_mutex_unlock();  // 解锁回放互斥锁
 
-    ret = qemu_poll_ns((GPollFD *)gpollfds->data, gpollfds->len, timeout);
+    ret = qemu_poll_ns((GPollFD *)gpollfds->data, gpollfds->len, timeout);  // 使用QEMU的poll函数进行事件轮询，传入文件描述符、描述符数量和超时时间
 
-    replay_mutex_lock();
-    qemu_mutex_lock_iothread();
+    replay_mutex_lock();  // 重新锁定回放互斥锁
+    qemu_mutex_lock_iothread();  // 重新锁定QEMU的IO线程互斥锁
 
-    glib_pollfds_poll();
+    glib_pollfds_poll();  // 使用GLib进行文件描述符的轮询
 
-    g_main_context_release(context);
+    g_main_context_release(context);  // 释放GMainContext上下文的锁
 
-    return ret;
+    return ret;  // 返回事件轮询的结果
 }
 #else
 /***********************************************************/
