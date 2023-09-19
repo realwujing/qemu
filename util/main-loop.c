@@ -290,13 +290,14 @@ static void glib_pollfds_fill(int64_t *cur_timeout)
 
 static void glib_pollfds_poll(void)
 {
-    GMainContext *context = g_main_context_default();
-    GPollFD *pfds = &g_array_index(gpollfds, GPollFD, glib_pollfds_idx);
+    GMainContext *context = g_main_context_default(); // 获取默认的GMainContext
+    GPollFD *pfds = &g_array_index(gpollfds, GPollFD, glib_pollfds_idx); // 获取存储GPollFD的数组和索引
 
-    if (g_main_context_check(context, max_priority, pfds, glib_n_poll_fds)) {
-        g_main_context_dispatch(context);
+    if (g_main_context_check(context, max_priority, pfds, glib_n_poll_fds)) { // 检查GMainContext中是否有待处理的事件
+        g_main_context_dispatch(context); // 如果有待处理事件，调度GMainContext以处理它们
     }
 }
+
 
 #define MAX_MAIN_LOOP_SPIN (1000)
 
